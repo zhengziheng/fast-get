@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>fastget</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header></header>
+<main>
+    <div class="wrapper" id="main"></div>
+</main>
+<footer></footer>
+
+<script>
+    //1.初始化数据
+    var initAll = init();
+    var keys = initAll.keys;
+    var hash = initAll.hash;
+
+    //2.生成键盘
+    //遍历keys，生成kbd标签
+    generateKeyboard(keys,hash);
+    
+    //3.监听用户动作
+    listenToUser(hash);
+
+    //工具函数
+    function init() {
+        var keys = {
+            0: ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+            1: ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+            2: ['z', 'x', 'c', 'v', 'b', 'n', 'm'],
+            length: 3
+        };
+
+        var hash = {
+            z: 'http://zhihu.com',
+            j: 'http://juejin.im',
+            e: 'http://ele.me',
+            q: 'http://qq.com'
+        };
+
+        //取出LocalStorage'zzz'中的对应内容
+        var hashInLocalStorage = getFromLocalStorage('zzz');
+        if (hashInLocalStorage) {
+            hash = hashInLocalStorage;
+        }
+        return{
+            'keys':keys,
+            'hash':hash
+        }
+    }
+
+    function generateKeyboard(keys,hash) {
+        for (var index = 0; index <keys['length']; index++) {
+            var div = tag('div', {className: 'row'});
+            div.className = 'row';
+
+            main.appendChild(div);
+
+            var row = keys[index];//第1  2  3 个数组
+            for (var index2 = 0; index2 < row.length; index2++) {
+                var span = createSpan(row[index2]);
+
+                var button = createButton(row[index2]);
+
+                var img = createImage(hash[row[index2]]);
+
+                var kbd = tag('kbd');
+                kbd.className = 'key';//设置键盘样式
+
+                kbd.appendChild(span);
+                kbd.appendChild(img);
+                kbd.appendChild(button);
+                div.appendChild(kbd);
+            }
+        }
+    }
+
+    function listenToUser(hash) {
+        document.onkeypress = function (ev) {
+            var key = ev.key;//用户按了什么键
+            var website = hash[key];//拿到键对应的网站
+            window.open(website, '_blank');//新窗口打开网站
+        };
+    }
+
+    function getFromLocalStorage(name) {
+        return JSON.parse(localStorage.getItem(name) || 'null');
+    }
+
+    function tag(tagName) {
+        return document.createElement(tagName);
+    }
+
+    function createSpan(textContent) {
+        var span = tag('span');
+        span.className = 'text';
+        span.textContent = textContent;
+        return span;
+    }
+
+    function createButton(id) {
+        var button = tag('button');//button是一个容器,在这26次循环中，只有一个button
+        button.textContent = 'Edit';
+        button.style.borderRadius = '3px';
+        button.id = id;
+        button.onclick = function (ev) {
+            var buttonPressed = ev.target;
+            var img2 = buttonPressed.previousSibling;
+            var pressKey = buttonPressed['id'];//被用户点击的按钮 q w e ...
+            var newWebsite = prompt('请输入网址，例如：weibo.com');
+            hash[pressKey] = `http://${newWebsite}`;//hash变更
+            img2.src = 'http://' + newWebsite + '/favicon.ico';
+            img2.onerror = function (ev) {
+                ev.target.src = 'https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=1112922890,1113887179&fm=27&gp=0.jpg';
+            };
+            localStorage.setItem('zzz', JSON.stringify(hash));// localStorage有很多桶，目前hash存于zzz桶里，做备份的过程
+        };
+        return button;
+    }
+
+    function createImage(domain) {
+        var img = tag('img');
+        if (domain) {
+            img.src = domain + '/favicon.ico';//图标获取
+        } else {
+            img.src = 'https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=1112922890,1113887179&fm=27&gp=0.jpg'//默认图片
+        }
+        img.onerror = function (ev) {
+            ev.target.src = 'https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=1112922890,1113887179&fm=27&gp=0.jpg';
+        };//网址加载失败，拿不到图标，显示默认图片
+        return img;
+    }
+
+
+</script>
+</body>
+</html>
